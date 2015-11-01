@@ -26,5 +26,20 @@ WORK IN PROGRESS. EXPERIMENTAL!
 
 - Python 3
 - installed pandoc tool
-- all the python libraries listed in requirements.txt
 
+installation:
+
+```bash
+pip install -r requirements.txt
+
+
+# for formatting citations in a certain style
+hg clone http://bitbucket.org/fbennett/citeproc-js/
+cd citeproc-js
+hg clone https://bitbucket.org/bdarcus/csl-utils
+git clone git://github.com/citation-style-language/locales.git locale
+```
+
+## Setup
+
+- Choose a style using e.g. <http://editor.citationstyles.org>
