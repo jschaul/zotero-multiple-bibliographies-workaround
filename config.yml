@@ -1,4 +1,19 @@
-tags:
-  - tag1
-  - tag2
-  - tag3
+
+input_filenames:
+  - zotero_sample.docx
+
+output_filename: bibliography.html
+
+title: Bibliography
+
+#style: modern-humanities-research-association
+style: chicago-fullnote-bibliography
+
+sections:
+
+  - primary sources:
+    - tag1
+    - tag2
+
+  - secondary sources:
+    - tag3

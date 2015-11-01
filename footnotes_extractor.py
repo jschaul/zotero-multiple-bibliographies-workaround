@@ -1,6 +1,7 @@
 import itertools
 import xml.dom.minidom
 import html
+import yaml
 
 from zipfile import ZipFile
 import os
@@ -22,6 +23,8 @@ class DocumentFootnotes():
         self.references = []
         self.reference_urls = []
         self.citations_filename = citations_filename
+
+
 
     def extract_reference_keys(self):
         self._unzip()
@@ -86,13 +89,6 @@ class DocumentFootnotes():
         chain = itertools.chain(*urls)
         self.reference_urls = list(chain)
         self.references = [ref.split("/")[-1] for ref in self.reference_urls]
-
-
-
-def html2docx(inputfile, outputfile):
-    os.system("")
-    os.system("pandoc {} -s -o {}".format(inputfile, outputfile))
-
 
 
 
