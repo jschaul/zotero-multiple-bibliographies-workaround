@@ -67,7 +67,7 @@ class APIDownloader():
         pickle.dump( self.bib_items_by_key, open( "bib_items_by_key.p", "wb" ) )
         pickle.dump( self.bib_items, open( "bib_items.p", "wb" ) )
         self.all_tags = self.zot.tags()
-        pickle.dump( self.bib_items, open( "all_tags.p", "wb" ) )
+        pickle.dump( self.all_tags, open( "all_tags.p", "wb" ) )
 
     def load_data(self):
         self.bib_items = pickle.load( open( "bib_items.p", "rb" ) )
@@ -143,7 +143,7 @@ class APIDownloader():
             for item in items:
                 lines.append("ITEM FOUND IN SECTIONS: {} {}".format(item[DUPLICATES], item['data'].get('title', "NO_TITLE")))
 
-        if section == NO_MATCH or section == DUPLICATES:
+        if section == NO_MATCH:
             lines.append("<h3>unused tags:</h3>")
             lines.append("<p>{}</p>".format(set(self.all_tags).difference(set(self.sections_all_tags))))
             lines.append("<h3>unused item types:</h3>")
