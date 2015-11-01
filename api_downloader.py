@@ -28,6 +28,7 @@ class APIDownloader():
         self.style = style
         self.bib_items = []
         self.bib_items_by_key = {}
+        self.all_tags = []
 
         self._parse_config()
         self.section_items = {section:[] for section in self.sections.keys()}
@@ -65,10 +66,13 @@ class APIDownloader():
 
         pickle.dump( self.bib_items_by_key, open( "bib_items_by_key.p", "wb" ) )
         pickle.dump( self.bib_items, open( "bib_items.p", "wb" ) )
+        self.all_tags = self.zot.tags()
+        pickle.dump( self.bib_items, open( "all_tags.p", "wb" ) )
 
     def load_data(self):
         self.bib_items = pickle.load( open( "bib_items.p", "rb" ) )
         self.bib_items_by_key = pickle.load( open( "bib_items_by_key.p", "rb" ) )
+        self.all_tags = pickle.load( open( "all_tags.p", "rb" ) )
 
     def tags_by_key(self, key):
         return [i['tag'] for i in self.bib_items_by_key[key]['data']['tags']]
@@ -122,16 +126,15 @@ class APIDownloader():
         with open(self.output_filename, "a") as f:
             items = self.section_items[section]
             all_keys = [item['key'] for item in items]
-            by_chunks = list(self.chunks(all_keys, 25))
+            by_chunks = list(self.chunks(all_keys, 50))
+            f.write("<h2>{}</h2>\n".format(section))
             logging.info("split keys into {} chunks".format(len(by_chunks)))
             for keys in by_chunks:
                 bib = self.zot.items(itemKey=",".join(keys), format="bib", style=self.style)
-                print("---------")
                 lines = bib.split("\n")
-                lines[0] = "<h2>{}</h2>".format(section)
                 self._handle_duplicates_no_matches(lines, section, items)
-                result = "\n".join(lines)
-                print(lines)
+                result = "\n".join(lines[1:]) # remove first line containing xml header
+                logging.info(lines[1:])
                 f.write(result)
 
     def _handle_duplicates_no_matches(self, lines, section, items):
@@ -142,14 +145,9 @@ class APIDownloader():
 
         if section == NO_MATCH or section == DUPLICATES:
             lines.append("<h3>unused tags:</h3>")
-            lines.append("<p>{}</p>".format(set(self.get_tags()).difference(set(self.sections_all_tags))))
+            lines.append("<p>{}</p>".format(set(self.all_tags).difference(set(self.sections_all_tags))))
             lines.append("<h3>unused item types:</h3>")
             lines.append("<p>{}</p>".format(set([item['data'].get('itemType') for item in self.bib_items]).difference(set(self.sections_all_tags))))
-
-
-    def get_tags(self):
-        return self.zot.tags()
-
 
 
 def main():

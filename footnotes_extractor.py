@@ -24,8 +24,6 @@ class DocumentFootnotes():
         self.reference_urls = []
         self.citations_filename = citations_filename
 
-
-
     def extract_reference_keys(self):
         self._unzip()
         self._extract_reference_keys()
@@ -47,11 +45,11 @@ class DocumentFootnotes():
         self.unzipped_directory = self.UNZIP_PREFIX + self.filename_base
         z.extractall(self.unzipped_directory)
         self.footnotes_filename = os.path.join(self.unzipped_directory, "word", "footnotes.xml")
-        logging.debug("unzipping to {}".format(self.footnotes_filename))
+        logging.info("unzipping to {}".format(self.footnotes_filename))
 
     def _cleanup(self):
         shutil.rmtree(self.unzipped_directory)
-        logging.debug("cleaned up directory: {}".format(self.unzipped_directory))
+        logging.info("cleaned up directory: {}".format(self.unzipped_directory))
 
     def _extract_raw_citation(self, line):
         l = html.unescape(line)
