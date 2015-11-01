@@ -66,7 +66,12 @@ class APIDownloader():
 
         pickle.dump( self.bib_items_by_key, open( "bib_items_by_key.p", "wb" ) )
         pickle.dump( self.bib_items, open( "bib_items.p", "wb" ) )
-        self.all_tags = self.zot.tags()
+
+        self.all_tags = []
+        for item in self.bib_items:
+            tags = self.tags(item)
+            self.all_tags.extend(tags)
+        self.all_tags = list(set(self.all_tags))
         pickle.dump( self.all_tags, open( "all_tags.p", "wb" ) )
 
     def load_data(self):
@@ -134,7 +139,7 @@ class APIDownloader():
                 lines = bib.split("\n")
                 self._handle_duplicates_no_matches(lines, section, items)
                 result = "\n".join(lines[1:]) # remove first line containing xml header
-                logging.info(lines[1:])
+                logging.info(lines[1:3])
                 f.write(result)
 
     def _handle_duplicates_no_matches(self, lines, section, items):
