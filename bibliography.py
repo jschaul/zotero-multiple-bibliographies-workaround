@@ -18,9 +18,9 @@ for filename in input_filenames:
 
 downloader = APIDownloader(all_keys)
 
-# TODO: implement caching behaviour based on time, e.g. 5 minutes
-downloader.download_data()
 
 downloader.load_data()
 downloader.add_to_sections()
 downloader.download_bib()
+
+
