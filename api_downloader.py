@@ -44,7 +44,6 @@ class APIDownloader():
         self.bib_items_cache = ".cache.bib_items.p"
         self.bib_items_by_key_cache = ".cache.bib_items_by_key.p"
         self.tags_cache = ".cache.all_tags.p"
-        self.cache_max_age = 300
 
     def _parse_config(self):
         with open("config.yml", 'r') as yamlfile:
@@ -53,6 +52,8 @@ class APIDownloader():
             self.style = config.get("style")
             self.output_filename = config.get("output_filename")
             self.title = config.get("title")
+
+            self.cache_max_age = int(config.get("cache_duration_in_minutes")) * 60
 
             sections = config.get("sections")
             tags = [list(section.values())[0] for section in sections]

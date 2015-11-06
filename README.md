@@ -43,16 +43,18 @@ cp settings.py.sample settings.py
 
 then edit the file by adding: 
 
-- Your **personal library ID** is available [here](https://www.zotero.org/settings/keys), in the section `Your userID for use in API calls`
-- You'll also need<sup>†</sup> to get an **API key** [here][2]
+- Your zotero **personal library ID** and your **API key** , which can be found [here](https://www.zotero.org/settings/keys) (you'll need to gnerate an API key), in the section `Your userID for use in API calls`
+
 
 ### Configure `config.yml`
 
 - Choose a style using e.g. <http://editor.citationstyles.org> or leave the default
 - Define a path to input files to be read
-- Define your sections that you want.
-    - and a list of zotero tags or itemTypes (e.g. `journalArticle`) 
+- Define the sections that you want.
+    - for each section, add a list of zotero tags (e.g. `my tag1`) or itemTypes (e.g. `journalArticle`) 
+    - if there is overlap, you'll get a section "duplicates" in the output - it'll be up to you to adapt the tags in the sections or on the items in zotero.
 - run `python bibliography.py` and inspect the output of bibliography.html or (if you have pandoc installed) bibliography.docx
+- by default some information is cached for 5 minutes. Adapt `cache_duration_in_minutes` inside the config.yml to your needs.
 
 
 

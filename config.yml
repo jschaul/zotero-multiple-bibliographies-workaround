@@ -4,9 +4,10 @@ input_filenames:
 
 output_filename: bibliography.html
 
+cache_duration_in_minutes: 5 # set to 0 if caching of zotero tags is not desired
+
 title: Bibliography
 
-#style: modern-humanities-research-association
 style: chicago-fullnote-bibliography
 
 sections:
