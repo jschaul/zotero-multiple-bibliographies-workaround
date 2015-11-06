@@ -19,6 +19,7 @@ def html2docx(inputfile, outputfile):
 
 DUPLICATES = "duplicates"
 NO_MATCH = "no_section_match"
+INCOMPLETE = "included in one section above, sorted by 'title' or 'nameOfAct', but no author defined"
 
 
 class APIDownloader():
@@ -36,6 +37,7 @@ class APIDownloader():
         self.section_items = {section: [] for section in self.sections.keys()}
         self.section_items[DUPLICATES] = []
         self.section_items[NO_MATCH] = []
+        self.section_items[INCOMPLETE] = []
 
         logging.info("all keys: {}".format(citation_keys))
 
@@ -119,6 +121,8 @@ class APIDownloader():
                 if tag_match or type_match:
                     self.section_items[section].append(item)
                     found_sections.append(section)
+                if not item['data'].get("creators"):
+                    self.section_items[INCOMPLETE].append(item)
             if len(found_sections) > 1:
                 item[DUPLICATES] = found_sections
                 self.section_items[DUPLICATES].append(item)
@@ -131,13 +135,23 @@ class APIDownloader():
             yield l[i:i + n]
 
 
-    def sort_by_author(self, list):
-        list_filtered = [el for el in list if el['data']['creators']]
-        logging.info("filtered {} vs full {}".format(len(list_filtered), len(list)))
-        sorted_list = sorted(list_filtered, key=lambda x: x['data']['creators'][0].get('lastName', ""))
-        # sorted_list.extend(list(set(list).difference(set(list_filtered))))
-        #TODO: add missing elements!
-        #TODO: do not chunk across authors
+    def _sort_key(self, item):
+        if item['data']['creators'] and item['data']['creators'][0].get("lastName"):
+            return item['data']['creators'][0].get("lastName")
+        elif item['data'].get('title'):
+            logging.warning("sorting by title: {}".format(item['data']))
+            return item['data']['title']
+        elif item['data'].get("nameOfAct"):
+            logging.warning("sorting by nameOfAct: {}".format(item['data']))
+            return item['data']['nameOfAct']
+        else:
+            logging.warning("sorting by key: {}".format(item['data']))
+            return item['key']
+
+
+
+    def sort_by_author_then_title(self, list):
+        sorted_list = sorted(list, key=lambda x: self._sort_key(x))
         return sorted_list
 
     def download_bib(self):
@@ -150,9 +164,37 @@ class APIDownloader():
 
         self._process_single_section(DUPLICATES)
         self._process_single_section(NO_MATCH)
+        self._process_single_section(INCOMPLETE)
 
         html2docx(self.output_filename, self.output_filename.split(".")[0] + ".docx")
         logging.info("done!")
+
+
+    def _chunk_keeping_same_authors_together(self, items):
+
+        author_groups = []
+        author_group = [items[0]]
+        for i in items[1:]:
+            if i['data']['creators'] == author_group[-1]['data']['creators']:
+                author_group.append(i)
+            else:
+                author_groups.append(author_group)
+                author_group = [i]
+        if author_group not in author_groups:
+            author_groups.append(author_group)
+
+        # merge some author groups as long as total size doesn't go over 50
+        # 50 being the hard limit for bibliography requests to zotero API
+        chunk_list = []
+        current_group = []
+        for group in author_groups:
+            if len(current_group) + len(group) < 50:
+                current_group.extend(group)
+            else:
+                chunk_list.append(current_group)
+                current_group = group
+        chunk_list.append(current_group)
+        return chunk_list
 
     def _process_single_section(self, section):
 
@@ -160,15 +202,16 @@ class APIDownloader():
         if not items:
             return
 
-        items = self.sort_by_author(items)
-
         logging.info("processing section {}".format(section))
+        items = self.sort_by_author_then_title(items)
+        chunk_list = self._chunk_keeping_same_authors_together(items)
+
+        logging.info("split keys into {} chunks".format(len(chunk_list)))
+
         with open(self.output_filename, "a") as f:
-            all_keys = [item['key'] for item in items]
-            by_chunks = list(self.chunks(all_keys))
             f.write("<h2>{}</h2>\n".format(section))
-            logging.info("split keys into {} chunks".format(len(by_chunks)))
-            for keys in by_chunks:
+            for chunk in chunk_list:
+                keys = [item['key'] for item in chunk]
                 bib = self.zot.items(itemKey=",".join(keys), format="bib", style=self.style)
                 lines = bib.split("\n")
                 result = "\n".join(lines[1:])  # remove first line containing xml header
